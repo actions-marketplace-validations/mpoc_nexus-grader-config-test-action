@@ -196,7 +196,7 @@ const generateConfigJsonSchemaConditionals = async (graderUrls) => {
         // Parse grader config file
         const convertedFile = yaml.load(fs.readFileSync(yamlFile, 'utf8'));
         console.log('YAML converted to JSON:');
-        console.log(convertedFile);
+        console.dir(convertedFile, { depth: null });
 
         // Validate grader config file
         const ajv = new Ajv();
