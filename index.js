@@ -90,11 +90,6 @@ const configSchemaToJsonSchema = (configSchema) => {
     if (configSchema.parameters == 0) {
         // Grader is non-configurable
         return { type: 'null' }
-        // return {
-        //     type: 'object',
-        //     properties: {},
-        //     additionalProperties: false
-        // }
     } else {
         // Grader is configurable
         
@@ -122,28 +117,13 @@ const configSchemaToJsonSchema = (configSchema) => {
 
 // Generates a JSON schema conditional statement for a configuration based on the name of the grader used
 const configJsonSchemaToConditional = (graderName, configurationSchema) => {
-    // const configSchemaIsConfigurable = Object.keys(configurationSchema).length != 0;
-    // if (configSchemaIsConfigurable) {
-        return {
-            if: { properties: { name: { const: graderName } }, },
-            then: {
-                properties: { configuration: configurationSchema },
-                // required: ["configuration", ...requiredAssignmentProperties], // Assuming this replaces the required property that is already specified
-                required: requiredAssignmentProperties,
-                // additionalProperties: false
-            }
-        };
-    // } else {
-    //     return {
-    //         if: { properties: { name: { const: graderName } } },
-    //         then: {
-    //             properties: { configuration: { const: 0 } },
-    //             required: requiredAssignmentProperties,
-    //             // required: ["configuration", ...requiredAssignmentProperties], // Assuming this replaces the required property that is already specified
-    //             // additionalProperties: false
-    //         }
-    //     };
-    // }
+    return {
+        if: { properties: { name: { const: graderName } } },
+        then: {
+            properties: { configuration: configurationSchema },
+            required: requiredAssignmentProperties
+        }
+    };
 };
 
 // Generates an 'allOf' array of JSON schema conditional statements to change
@@ -162,8 +142,6 @@ const generateConfigJsonSchemaConditionals = async (graderUrls) => {
         configJsonSchemaConditionals.push(jsonSchemaConditional);
     }
 
-    console.dir(configJsonSchemaConditionals, { depth: null })
-
     return configJsonSchemaConditionals;
 };
 
@@ -173,34 +151,10 @@ const injectConfigJsonSchemaConditionals = (configJsonSchemaConditionals) => {
 
 (async () => {
     try {
-    //   const configSchemaEndpoint = "http://192.168.99.1:3006/config_schema";
-    //   const configSchema = await retrieveConfigSchema(configSchemaEndpoint);
-    //   console.log(configSchema);
-    //   console.log();
-
-    //   const jsonSchema = configSchemaToJsonSchema(configSchema);
-    //   console.dir(jsonSchema, { depth: null });
-
       const configJsonSchemaConditionals = await generateConfigJsonSchemaConditionals(graderUrls);
       injectConfigJsonSchemaConditionals(configJsonSchemaConditionals);
       console.dir(graderConfigSchema, { depth: null })
       
-    //   const conditional = configurableGraderConfigJsonSchemaToConditional();
-    //   console.dir(conditional, { depth: null });
-
-      // const graderJsonSchema = configSchemaToJsonSchema(graderSchema);
-      // console.dir(graderJsonSchema, { depth: null });
-
-      // const conditional = configurableGraderConfigJsonSchemaToConditional("junit-grader", graderJsonSchema);
-      // console.dir(conditional, { depth: null });
-
-    //   const allOf = await generateGraderConfigConditionals(graderUrls);
-      // console.dir(allOf, { depth: null });
-
-    //   const finalSchema = injectAllOf(allOf);
-    //   console.dir(finalSchema, { depth: 5 });
-    //   console.dir(graderConfigSchema, { depth: 16 });
-
       const yamlFile = 'grader-config.yml';
       const convertedFile = yaml.load(fs.readFileSync(yamlFile, 'utf8'));
       console.log('YAML converted to JSON:');
@@ -214,7 +168,6 @@ const injectConfigJsonSchemaConditionals = (configJsonSchemaConditionals) => {
       } else {
           console.log('Wow, that is incredibly valid')
       }
-
     } catch (error) {
         console.log(error);
     }
