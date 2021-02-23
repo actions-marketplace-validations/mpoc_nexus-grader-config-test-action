@@ -20,7 +20,7 @@ The response of the HTTP API endpoints should be a JSON version of any `config_s
 - name: Nexus grader config validation
   uses: mpoc/nexus-grader-config-test-action@master
   with:
-    api-endpoint: >
+    grader-config-schema-endpoints: >
         {
             "javac-tool": "http://192.168.99.1:3003/config_schema",
             "rng-tool": "http://192.168.99.1:3001/config_schema",
