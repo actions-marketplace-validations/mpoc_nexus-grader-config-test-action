@@ -3,17 +3,7 @@ const yaml = require('js-yaml');
 const fetch = require('node-fetch');
 const Ajv = require("ajv").default;
 const betterAjvErrors = require("better-ajv-errors");
-
-const graderUrls = {
-    'javac-tool': 'http://192.168.99.1:3003/config_schema',
-    'rng-tool': 'http://192.168.99.1:3001/config_schema',
-    'config-tool': 'http://192.168.99.1:3002/config_schema',
-    'io-grader': 'http://192.168.99.1:3004/config_schema',
-    'junit-grader': 'http://192.168.99.1:3006/config_schema',
-    'cpp-iograder': 'http://192.168.99.1:3008/config_schema',
-    'cpp-compilation': 'http://192.168.99.1:3007/config_schema',
-    'cppunit-grader': 'http://192.168.99.1:3015/config_schema'
-};
+const core = require("@actions/core");
 
 const generateFullConfigJsonSchema = (graderUrls, configsConditionals) => ({
     type: 'array',
@@ -173,13 +163,14 @@ const generateConfigJsonSchemaConditionals = async (graderUrls) => {
 
 (async () => {
     try {
+        const graderUrls = JSON.parse(core.getInput("grader-config-schema-endpoints"));
+        const yamlFile = core.getInput("yaml-file");
+
         // Generate grader config JSON schema
         const configJsonSchemaConditionals = await generateConfigJsonSchemaConditionals(graderUrls);
         const graderConfigSchema = generateFullConfigJsonSchema(graderUrls, configJsonSchemaConditionals);
-        console.dir(graderConfigSchema, { depth: null })
         
         // Parse grader config file
-        const yamlFile = 'grader-config.yml';
         const convertedFile = yaml.load(fs.readFileSync(yamlFile, 'utf8'));
         console.log('YAML converted to JSON:');
         console.log(convertedFile);
@@ -190,11 +181,12 @@ const generateConfigJsonSchemaConditionals = async (graderUrls) => {
         const valid = validate(convertedFile);
         if (!valid) {
             const output = betterAjvErrors(graderConfigSchema, convertedFile, validate.errors, { format: 'js' });
-            console.log(output[0].error);
+            const failMessage = `Invalid YAML definition: ${output[0].error}`;
+            core.setFailed(failMessage);
         } else {
-            console.log('Wow, that is incredibly valid')
+            console.log('Grader config YAML is valid')
         }
     } catch (error) {
-        console.log(error);
+        core.setFailed(error.message);
     }
 })();
