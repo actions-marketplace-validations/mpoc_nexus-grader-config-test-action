@@ -1,0 +1,15 @@
+name: 'Nexus grader config validation'
+description: 'Validates a Nexus grader config YAML file by checking it against grader config schema definition retrieved from a remote HTTP API endpoint.'
+branding:
+  icon: 'arrow-down-circle'  
+  color: 'purple'
+inputs:
+  grader-config-schema-endpoints:
+    description: 'A stringified JSON object where keys are grader names and values are the HTTP API config_schema endpoints.'
+    required: true
+  yaml-file:
+    description: 'The name of config YAML file to validate.'
+    required: true
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
