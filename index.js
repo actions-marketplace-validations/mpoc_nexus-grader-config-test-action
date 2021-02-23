@@ -5,8 +5,8 @@ const Ajv = require("ajv").default;
 
 const graderUrls = {
     'javac-tool': 'http://192.168.99.1:3003/config_schema',
-    // 'rng-tool': 'http://192.168.99.1:3001/config_schema',
-    // 'config-tool': 'http://192.168.99.1:3002/config_schema',
+    'rng-tool': 'http://192.168.99.1:3001/config_schema',
+    'config-tool': 'http://192.168.99.1:3002/config_schema',
     'io-grader': 'http://192.168.99.1:3004/config_schema',
     'junit-grader': 'http://192.168.99.1:3006/config_schema',
     'cpp-iograder': 'http://192.168.99.1:3008/config_schema',
@@ -73,8 +73,33 @@ const schemaPropertyToJsonSchema = (property) => {
 
 // Retrieve grader config schema from a GET config_schema endpoint
 const retrieveConfigSchema = async (endpoint) => {
+    // Some graders are not build on top of abstract grader and therefore may
+    // not have the 'grader_schema' endpoint, where this action could retrieve
+    // the schema. We consider two such cases:
+    //
+    // 1) Where the URL in 'graderUrls' is null.
+    // 2) Where the URL in 'graderUrls' is defined, but calling the HTTP API returns status 404.
+    //
+    // In both cases, we will assume that the
+    // grader DOES actually exist (because it was given as an input to the
+    // action), but we will assume that it is non-configurable, and therefore
+    // return a schema which a non-configurable grader would return.
+    const nonConfigurableGraderSchema = {
+        parameters: 0
+    };
+
+    // Case 1
+    if (endpoint == null) {
+        return nonConfigurableGraderSchema;
+    }
+
     const response = await fetch(endpoint)
         .catch(error => { throw new Error(`Invalid request to server ${endpoint}: ${error.message}`) });
+
+    // Case 2
+    if (response.status == 404) {
+        return nonConfigurableGraderSchema;
+    }
 
     if (!response.ok) {
         const errorText = response.statusText;
