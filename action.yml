@@ -1,5 +1,5 @@
 name: 'Nexus grader config validation'
-description: 'Validates a Nexus grader config YAML file by checking it against grader config schema definition retrieved from a remote HTTP API endpoint.'
+description: 'Validates a Nexus grader config YAML file by checking it against config schemas retrieved from Nexus.'
 branding:
   icon: 'arrow-down-circle'  
   color: 'purple'
