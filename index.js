@@ -2,6 +2,7 @@ const fs = require('fs');
 const yaml = require('js-yaml');
 const fetch = require('node-fetch');
 const Ajv = require("ajv").default;
+const betterAjvErrors = require("better-ajv-errors");
 
 const graderUrls = {
     'javac-tool': 'http://192.168.99.1:3003/config_schema',
@@ -172,21 +173,24 @@ const generateConfigJsonSchemaConditionals = async (graderUrls) => {
 
 (async () => {
     try {
+        // Generate grader config JSON schema
         const configJsonSchemaConditionals = await generateConfigJsonSchemaConditionals(graderUrls);
-        //   injectConfigJsonSchemaConditionals(configJsonSchemaConditionals);
         const graderConfigSchema = generateFullConfigJsonSchema(graderUrls, configJsonSchemaConditionals);
         console.dir(graderConfigSchema, { depth: null })
         
+        // Parse grader config file
         const yamlFile = 'grader-config.yml';
         const convertedFile = yaml.load(fs.readFileSync(yamlFile, 'utf8'));
         console.log('YAML converted to JSON:');
         console.log(convertedFile);
 
-        const ajv = new Ajv(); // options can be passed
+        // Validate grader config file
+        const ajv = new Ajv();
         const validate = ajv.compile(graderConfigSchema);
         const valid = validate(convertedFile);
         if (!valid) {
-            console.log(validate.errors);
+            const output = betterAjvErrors(graderConfigSchema, convertedFile, validate.errors, { format: 'js' });
+            console.log(output[0].error);
         } else {
             console.log('Wow, that is incredibly valid')
         }
