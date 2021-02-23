@@ -14,8 +14,7 @@ const graderUrls = {
     'cppunit-grader': 'http://192.168.99.1:3015/config_schema'
 };
 
-const requiredAssignmentProperties = [ 'name', 'weight', 'condition', 'configuration' ];
-const graderConfigSchema = {
+const generateFullConfigJsonSchema = (graderUrls, configsConditionals) => ({
     type: 'array',
     items: {
         type: 'object',
@@ -35,10 +34,12 @@ const graderConfigSchema = {
                 ]
             }
         },
-        required: requiredAssignmentProperties, // I don't think this is strictly necessary
-        additionalProperties: false
+        // I think that this 'required' is only necessary either here or in 'configJsonSchemaToConditional', but since I've now made it so that it would be same and not depend on the conditionals, I'm moving it here
+        required: [ 'name', 'weight', 'condition', 'configuration' ],
+        additionalProperties: false,
+        allOf: configsConditionals
     }
-};
+});
 
 // Converts a parameter in a grader config schema to an equivalent JSON schema object
 const schemaPropertyToJsonSchema = (property) => {
@@ -145,8 +146,7 @@ const configJsonSchemaToConditional = (graderName, configurationSchema) => {
     return {
         if: { properties: { name: { const: graderName } } },
         then: {
-            properties: { configuration: configurationSchema },
-            required: requiredAssignmentProperties
+            properties: { configuration: configurationSchema }
         }
     };
 };
@@ -170,29 +170,26 @@ const generateConfigJsonSchemaConditionals = async (graderUrls) => {
     return configJsonSchemaConditionals;
 };
 
-const injectConfigJsonSchemaConditionals = (configJsonSchemaConditionals) => {
-    graderConfigSchema.items.allOf = configJsonSchemaConditionals;
-};
-
 (async () => {
     try {
-      const configJsonSchemaConditionals = await generateConfigJsonSchemaConditionals(graderUrls);
-      injectConfigJsonSchemaConditionals(configJsonSchemaConditionals);
-      console.dir(graderConfigSchema, { depth: null })
-      
-      const yamlFile = 'grader-config.yml';
-      const convertedFile = yaml.load(fs.readFileSync(yamlFile, 'utf8'));
-      console.log('YAML converted to JSON:');
-      console.log(convertedFile);
+        const configJsonSchemaConditionals = await generateConfigJsonSchemaConditionals(graderUrls);
+        //   injectConfigJsonSchemaConditionals(configJsonSchemaConditionals);
+        const graderConfigSchema = generateFullConfigJsonSchema(graderUrls, configJsonSchemaConditionals);
+        console.dir(graderConfigSchema, { depth: null })
+        
+        const yamlFile = 'grader-config.yml';
+        const convertedFile = yaml.load(fs.readFileSync(yamlFile, 'utf8'));
+        console.log('YAML converted to JSON:');
+        console.log(convertedFile);
 
-      const ajv = new Ajv(); // options can be passed
-      const validate = ajv.compile(graderConfigSchema);
-      const valid = validate(convertedFile);
-      if (!valid) {
-          console.log(validate.errors);
-      } else {
-          console.log('Wow, that is incredibly valid')
-      }
+        const ajv = new Ajv(); // options can be passed
+        const validate = ajv.compile(graderConfigSchema);
+        const valid = validate(convertedFile);
+        if (!valid) {
+            console.log(validate.errors);
+        } else {
+            console.log('Wow, that is incredibly valid')
+        }
     } catch (error) {
         console.log(error);
     }
