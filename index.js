@@ -37,6 +37,7 @@ const schemaPropertyToJsonSchema = (property) => {
     if (property.type == 'git') {
         return {
             oneOf: [
+                // For manually configuring a grader
                 {
                     type: 'object',
                     properties: {
@@ -46,8 +47,9 @@ const schemaPropertyToJsonSchema = (property) => {
                     },
                     required: [ 'repository', 'branch', 'sha' ],
                     additionalProperties: false
-                }, // For manually configuring a grader
-                { type: 'null' } // For 'this' repository
+                },
+                // For 'this' repository
+                { const: 'this' }
             ]
         }
     } else if (property.type == 'int') {
