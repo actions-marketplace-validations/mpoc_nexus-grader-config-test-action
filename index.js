@@ -6,6 +6,7 @@ const betterAjvErrors = require("better-ajv-errors");
 const core = require("@actions/core");
 
 const generateFullConfigJsonSchema = (graderUrls, configsConditionals) => ({
+    '$schema': 'http://json-schema.org/draft-07/schema#',
     type: 'array',
     items: {
         type: 'object',
