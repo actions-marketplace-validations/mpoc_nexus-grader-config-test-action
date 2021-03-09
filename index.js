@@ -36,14 +36,19 @@ const generateFullConfigJsonSchema = (graderUrls, configsConditionals) => ({
 const schemaPropertyToJsonSchema = (property) => {
     if (property.type == 'git') {
         return {
-            type: 'object',
-            properties: {
-                repository: { type: 'string', },
-                branch: { type: 'string', },
-                sha: { type: 'string', }
-            },
-            required: [ 'repository', 'branch', 'sha' ],
-            additionalProperties: false
+            oneOf: [
+                {
+                    type: 'object',
+                    properties: {
+                        repository: { type: 'string', },
+                        branch: { type: 'string', },
+                        sha: { type: 'string', }
+                    },
+                    required: [ 'repository', 'branch', 'sha' ],
+                    additionalProperties: false
+                }, // For manually configuring a grader
+                { type: 'null' } // For 'this' repository
+            ]
         }
     } else if (property.type == 'int') {
         return {
