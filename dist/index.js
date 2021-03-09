@@ -29,6 +29,7 @@ const betterAjvErrors = __nccwpck_require__(3450);
 const core = __nccwpck_require__(966);
 
 const generateFullConfigJsonSchema = (graderUrls, configsConditionals) => ({
+    '$schema': 'http://json-schema.org/draft-07/schema#',
     type: 'array',
     items: {
         type: 'object',
