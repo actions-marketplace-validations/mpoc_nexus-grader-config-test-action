@@ -37,21 +37,33 @@ const generateFullConfigJsonSchema = (graderUrls, configsConditionals) => ({
 const schemaPropertyToJsonSchema = (property) => {
     if (property.type == 'git') {
         return {
-            oneOf: [
-                // For manually configuring a grader
-                {
-                    type: 'object',
-                    properties: {
-                        repository: { type: 'string', },
-                        branch: { type: 'string', },
-                        sha: { type: 'string', }
-                    },
-                    required: [ 'repository', 'branch', 'sha' ],
-                    additionalProperties: false
+            type: 'object',
+            properties: {
+                repository: {
+                    oneOf: [
+                        // Both of them are strings, but it is important
+                        // to specify this in the schema for whoever is
+                        // reading this comment. Value 'this' has a
+                        // special meaning - we are referring to 'this'
+                        // repository, where the assignment and grader
+                        // config is defined.
+                        { const: 'this' },
+                        { type: 'string' }
+                    ]
                 },
-                // For 'this' repository
-                { const: 'this' }
-            ]
+                branch: { type: 'string' },
+                sha: {
+                    oneOf: [
+                        // Similar to repository - both are strings, but
+                        // 'latest' has a special meaning - the sha of
+                        // the latest commit in the repository.
+                        { const: 'latest' },
+                        { type: 'string' }
+                    ]    
+                }
+            },
+            required: [ 'repository', 'branch', 'sha' ],
+            additionalProperties: false
         }
     } else if (property.type == 'int') {
         return {
